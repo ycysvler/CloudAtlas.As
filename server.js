@@ -8,13 +8,32 @@ var bodyParser = require('body-parser')
 var favicon = require('serve-favicon');
 var cors = require('cors');
 var loader = require('./server/loader');
+var Redis = require('ioredis');
+var onMessage = require('./server/message/messagecenter');
+var moment = require('moment');
+moment.locale('cn');
 
-let entloader = require('./server/connect/entloader');
-let ipvalidate = require('./server/connect/ipvalidate');
+var rediscfg = require('./server/config/redis');
+
+var redis = new Redis(rediscfg);
+var pub = new Redis(rediscfg);
+
+// 记录日志
+global.logs = [];
+// 记录心跳
+global.heartbeats = {};
+// 记录状态
+global.states = {};
 
 var app = express();
 
-console.log(__dirname);
+redis.on('message', function (channel, message) {
+    onMessage(channel, message);
+});
+
+redis.subscribe('Log','State:StateChange','HeartBeat:TimeChange', function (err, count) { });
+
+
 //app.use(compression())
 app.set('view engine', 'ejs');
 app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -41,6 +60,8 @@ app.use(cors(corsOptionsDelegate));
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
+let entloader = require('./server/connect/entloader');
+let ipvalidate = require('./server/connect/ipvalidate');
 // 处理entid
 app.use(entloader);
 // 处理ip白名单
@@ -57,9 +78,9 @@ app.get('/*', function (req, res) {
 });
 
 
-var PORT = process.env.PORT || 8093;
+var PORT = process.env.PORT || 8100;
 app.listen(PORT, function() {
-    console.log('Express server running at localhost:' + PORT);
+    console.log('cloudatlas application services running at localhost:' + PORT);
 });
 
 

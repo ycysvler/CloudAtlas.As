@@ -8,7 +8,6 @@ module.exports = (req, res, next) => {
     let Enterprise = getMongoPool("cabase").Enterprise;
     // format ip
     let ip = req.ip.replace('::ffff:', '');
-    console.log('content:ipvalidate > req entid:', req.ent.entid);
 
     if (req.ent.ips.includes(ip) || ip === '::1') {
         next();
