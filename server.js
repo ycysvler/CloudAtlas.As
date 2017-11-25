@@ -63,9 +63,9 @@ app.use(bodyParser.json());
 let entloader = require('./server/connect/entloader');
 let ipvalidate = require('./server/connect/ipvalidate');
 // 处理entid
-app.use(entloader);
+//app.use(entloader);
 // 处理ip白名单
-app.use(ipvalidate);
+//app.use(ipvalidate);
 // paas 相关接口
 app.use('/api', loader(path.join(__dirname, './server/routes/api'), true));
 // 管理平台相关接口

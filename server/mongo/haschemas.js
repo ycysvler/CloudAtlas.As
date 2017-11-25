@@ -26,6 +26,13 @@ module.exports = class Schemas{
         });
 
         this.Service =  conn.model('Service', this.configSchema,'service');
+
+        this.agentSchema = new mongoose.Schema({
+            ip: {type: String,index: {unique: true, dropDups: true}},   // 包名
+            agentid: {type: String}                   // agentid
+        });
+
+        this.Agent =  conn.model('Agent', this.configSchema,'agent');
     }
 }
 

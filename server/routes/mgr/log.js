@@ -16,7 +16,7 @@ module.exports = function (router) {
             res.write(JSON.stringify(global.logs));
             global.logs = [];
             res.end();
-        } else if(i<5){
+        } else if(i<10){
             setTimeout(function(){sendLogs(res,i)},1000);
         }else{
             res.json([]);

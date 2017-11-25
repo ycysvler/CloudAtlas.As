@@ -24,5 +24,14 @@ function stateChange(message){
 }
 
 function logChange(message){
+    if(!global.index){
+        global.index = 0;
+    }else if(global.index > 999999){
+        global.index = 0;
+    }
+    global.index++;
+
+    message.index = global.index;
+
     global.logs.unshift(message);
 }
