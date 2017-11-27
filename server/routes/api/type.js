@@ -1,7 +1,10 @@
 let moment = require('moment');
 let uuid = require('uuid');
 var path = require('path');
+let Redis = require('ioredis');
+let rediscfg = require('../../config/redis');
 
+let pub = new Redis(rediscfg);
 let getMongoPool = require('../../mongo/pool');
 
 module.exports = function (router) {
@@ -33,6 +36,16 @@ module.exports = function (router) {
         ImageType.find(function (err, items) {
             res.json(items);
         });
+    });
+
+    // PaaS -> 增量计算此分类特征
+    router.get('/types/:code/feature',(req, res, next)=>{
+        let entid = req.ent.entid;
+        let code = req.params.code;
+        let message = JSON.stringify({entid:entid,type:code});
+        pub.publish('Feature:BuildFeature', message);
+
+        res.send(true);
     });
 
     // PaaS -> 删除类型

@@ -21,15 +21,12 @@ module.exports = function (router) {
         var form = new multiparty.Form({uploadDir: './public/upload/'});
 
         form.parse(req, function (err, fields, files) {
-
             var resolvepath;
             var originalFilename;
 
             for (var name in files) {
                 let item = files[name][0];
-
                 resolvepath = path.resolve(item.path);
-
                 originalFilename = item.originalFilename;
             }
 
@@ -49,21 +46,22 @@ module.exports = function (router) {
                     item.state = 0;         // 0:新图，1:正在计算特征，2：计算特征成功，-1：计算特征失败
 
                     item.save(function (err, item) {
+                        // 删除临时图片
                         fs.unlink(file, () => {
                         });
-
                         if (err) {
+                            console.log(err.message);
                             res.send(500, err.errmsg);
                         }
                         else {
-                            res.send(200, {name:item.name});
-
-
+                            res.send(200, {name: item.name});
+                            // 发送新图片通知
+                            let message = JSON.stringify({entid:entid,type:'query',name:item.name});
+                            pub.publish('Feature:BuildFeature', message);
                         }
                     });
                 }
             });
-
         });
     });
 
