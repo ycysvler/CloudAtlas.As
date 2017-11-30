@@ -43,7 +43,7 @@ module.exports = function (router) {
                     item.name = uuid.v1() + extname;
                     item.source = chunk;
                     // 如果有类型和扩展信息，那就加上吧
-                    item.type = 'query';    // 这是一个用于查询的图像
+                    item.type = 'search';    // 这是一个用于查询的图像
                     item.state = 0;         // 0:新图，1:正在计算特征，2：计算特征成功，-1：计算特征失败
 
                     item.save(function (err, item) {
@@ -57,7 +57,7 @@ module.exports = function (router) {
                         else {
                             res.send(200, {name: item.name});
                             // 发送新图片通知
-                            let message = JSON.stringify({entid: entid, type: 'query', name: item.name});
+                            let message = JSON.stringify({entid: entid, type: 'search', name: item.name});
                             redis.publish('Feature:BuildFeature', message);
                         }
                     });
@@ -100,9 +100,8 @@ module.exports = function (router) {
                             // 相关的索引文件搞到了
                             blockCreate(entid,job._id,images,items,
                             function(error, blocks){
-                                let search_key = "search:" + job._id;
                                 // 通知新查询任务产生
-                                redis.publish('Search:NewJob', JSON.stringify({jobid: job._id}));
+                                redis.publish('Search:NewJob', JSON.stringify({jobid: job._id,entid:entid}));
                                 res.json(200, {id: job._id});
                             });
                         });
