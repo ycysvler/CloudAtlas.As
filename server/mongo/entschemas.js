@@ -25,8 +25,6 @@ module.exports = class Schemas{
             extend:String,                          //  扩展字段，放个大字符串
             createtime:Date                         //  创建时间
         });
-
-
         this.Image = conn.model('Image', this.imageSchema);
 
         this.imageTypeSchema = new mongoose.Schema({
@@ -36,7 +34,6 @@ module.exports = class Schemas{
             description:String,                                         // 描述信息
             createtime:Date                                             // 创建时间
         });
-
         this.ImageType = conn.model('ImageType', this.imageTypeSchema);
 
         this.imageIndexSchema = new mongoose.Schema({
@@ -47,8 +44,58 @@ module.exports = class Schemas{
         });
         this.imageIndexSchema.index({ type: 1, index: 1 });
         this.imageIndexSchema.index({ type: 1, state: 1 });
-
         this.ImageIndex = conn.model('ImageIndex', this.imageIndexSchema);
+
+        this.imageIndexFileSchema = new mongoose.Schema({
+            file_name: {type: String,index: {unique: true, dropDups: true}},  // 图片名称
+            type: String,                           // 业务类型
+            feature_type: String,                   // 查询的特征类型
+            count:Number,
+            index:Number,
+            version: String,                        // 查询的特征类型
+        });
+        this.ImageIndexFile = conn.model('ImageIndexFile', this.imageIndexFileSchema);
+
+        this.jobSchema = new mongoose.Schema({
+            name: {type: String},       // 任务名称
+            imagetypes: [String],       // 查询的图片类型
+            images: [String],           // 查询的图片类型
+            featuretypes: [String],     // 查询的特征类型
+            createtime:Date             // 创建时间
+        });
+
+        this.Job = conn.model('Job', this.jobSchema);
+
+        this.jobBlockSchema = new mongoose.Schema({
+            jobid:{type: String,index: true},
+            image:String,                           // 查询的图片类型
+            file_name: String,                      // 任务名称
+            type: String,                           // 查询的图片类型
+            feature_type: String,                   // 查询的特征类型
+            count:Number,
+            index:Number,
+            state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
+            createtime:Date                         // 创建时间
+        });
+
+        this.jobBlockSchema.index({ jobid: 1, state: 1 });
+        this.jobBlockSchema.index({ jobid: 1, file_name: 1 });
+        this.JobBlock = conn.model('JobBlock', this.jobBlockSchema);
+
+        this.jobResultSchema = new mongoose.Schema({
+            jobid: {type: String,index: true},  // 任务ID
+            imagetype: String,                  // 查询的图片类型
+            featuretype: String,                // 查询的特征类型
+            image: String,                      // 图片名称
+            score: String,                      // 相似度
+            extend:String,                      // 扩展内容
+            createtime:Date                     // 创建时间
+        });
+
+        this.jobResultSchema.index({ jobid: 1, imagetype: 1 });
+        this.jobResultSchema.index({ jobid: 1, imagetype: 1,featuretype:1 });
+
+        this.jobResultSchema = conn.model('JobResult', this.jobResultSchema);
     }
 }
 

@@ -4,7 +4,7 @@ var redis = new Redis(rediscfg);
 var pub = new Redis(rediscfg);
 
 // 订阅通道RebuildIndex
-redis.subscribe('Index:RebuildIndex', function (err, count) {
+redis.subscribe('Index:RebuildIndex','Search:NewJob', function (err, count) {
     pub.publish('news', 'Hello world!');
     pub.publish('music', 'Hello again!');
 });
