@@ -25,6 +25,7 @@ module.exports = function (router) {
             // 查找所有code
             ImageType.find({},{_id:0}).select('code').exec(function (err, items) {
                 msg.imageTypes = items;
+                console.log('????', msg);
                 pub.publish('Index:RebuildIndex', JSON.stringify(msg));
                 res.send(200, true);
             });

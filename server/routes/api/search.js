@@ -57,11 +57,8 @@ module.exports = function (router) {
                         }
                         else {
                             res.send(200, {name: item.name});
-
                             var msg = {name: item.name, type: 'search', entid: entid};
-
-                            pub.publish('Feature:BuildFeature', JSON.stringify(msg));
-
+                            redis.publish('Feature:BuildFeature', JSON.stringify(msg));
                         }
                     });
                 }
