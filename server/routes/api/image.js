@@ -179,7 +179,7 @@ module.exports = function (router) {
         });
     });
     // PaaS -> 获取图像数据
-    router.get('/images/:name',(req, res, next) =>{
+    router.get('/images/data/:appid/:name',(req, res, next) =>{
         // connect 使用 appid 换算出 entid
         let entid = req.ent.entid;
         let name = req.params.name;

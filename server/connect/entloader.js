@@ -6,7 +6,17 @@ let getMongoPool = require('../mongo/pool');
 module.exports =(req, res, next) => {
     let Enterprise = getMongoPool("cabase").Enterprise;
 
-    let appid = req.headers["appid"] ? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
+    let appid = "";
+
+    // 因为图片地址，没法改http头，所以要在url里面计算appid
+    var isGetImage = req.url.indexOf('/images/data/') > -1;
+
+    if(isGetImage){
+        var urlParams = req.url.split('/');
+        appid = urlParams[4];
+    }else{
+        appid = req.headers["appid"] ? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
+    }
 
     //console.log('content:entloader > appid : ',  appid);
 

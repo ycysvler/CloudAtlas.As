@@ -61,6 +61,7 @@ module.exports = class Schemas{
             imagetypes: [String],       // 查询的图片类型
             images: [String],           // 查询的图片类型
             featuretypes: [String],     // 查询的特征类型
+            progress:Number,
             createtime:Date             // 创建时间
         });
 
