@@ -14,7 +14,7 @@ let redis = new Redis(rediscfg);
 module.exports = function (router) {
 
     // PaaS -> 查询任务列表
-    router.get('/job/:entid', (req, res, next) => {
+    router.get('/ent/:entid/job', (req, res, next) => {
         let entid = req.params.entid;
 
         let Job = getMongoPool(entid).Job;
@@ -33,8 +33,20 @@ module.exports = function (router) {
     });
 
     // PaaS -> 查询结果
-    router.get('/job/:id/images', (req, res, next) => {
+    router.get('/ent/:entid/job/:jobid/:source/:imagetype/:featuretype', (req, res, next) => {
+        let entid = req.params.entid;
 
+        let JobResult = getMongoPool(entid).JobResult;
+
+        JobResult.find({
+                jobid: req.params.jobid,
+                source: req.params.source,
+                imagetype: req.params.imagetype,
+                featuretype: req.params.featuretype
+            },
+            function (errr, items) {
+                res.json(items);
+            })
     });
 
 

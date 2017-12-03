@@ -22,8 +22,8 @@ module.exports = function (router) {
     router.get('/enterprises/:entid/images/:image', (req, res, next) => {
         let entid = req.params.entid;
         let Image = getMongoPool(entid).Image;
-        Image.findOne({image: req.params.image}, function (err, item) {
-            res.json(item);
+        Image.findOne({name: req.params.image}, function (err, item) {
+            res.send(item.source);
         });
     });
     // 旧实现，暂留

@@ -86,6 +86,8 @@ module.exports = function (router) {
             item.name = req.body.name;
             item.imagetypes = imagetypes;
             item.images = images;
+            item.resultcount = 10;
+            item.state = 0;
             item.featuretypes = featuretypes;
             item.createtime = new moment();
             item.save(function (err, job) {
@@ -99,7 +101,7 @@ module.exports = function (router) {
                         .where('feature_type').in(featuretypes)
                         .exec(function (err, items) {
                             // 相关的索引文件搞到了
-                            blockCreate(entid,job._id,images,items,
+                            blockCreate(entid,job._id,images,items,item.resultcount / 2,
                                 function(error, blocks){
                                     // 通知新查询任务产生
                                     redis.publish('Search:NewJob', JSON.stringify({jobid: job._id,entid:entid}));
@@ -111,7 +113,7 @@ module.exports = function (router) {
         }
     });
 
-    function blockCreate(entid,jobid, images, files,callback) {
+    function blockCreate(entid,jobid, images, files,resultcount,callback) {
         var blocks = [];
         for (var i = 0; i < images.length; i++) {
             var image = images[i];
@@ -122,6 +124,7 @@ module.exports = function (router) {
                     image: image,
                     file_name: file.file_name,
                     type: file.type,
+                    resultcount:resultcount,
                     feature_type: file.feature_type,
                     count: file.count,
                     index: file.index,

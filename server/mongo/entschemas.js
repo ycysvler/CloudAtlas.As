@@ -57,12 +57,14 @@ module.exports = class Schemas{
         this.ImageIndexFile = conn.model('ImageIndexFile', this.imageIndexFileSchema);
 
         this.jobSchema = new mongoose.Schema({
-            name: {type: String},       // 任务名称
-            imagetypes: [String],       // 查询的图片类型
-            images: [String],           // 查询的图片类型
-            featuretypes: [String],     // 查询的特征类型
+            name: {type: String},                   // 任务名称
+            imagetypes: [String],                   // 查询的图片类型
+            images: [String],                       // 查询的图片类型
+            featuretypes: [String],                 // 查询的特征类型
             progress:Number,
-            createtime:Date             // 创建时间
+            state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
+            resultcount:Number,                     // 用户想要多少个结果（一共）
+            createtime:Date                         // 创建时间
         });
 
         this.Job = conn.model('Job', this.jobSchema);
@@ -75,6 +77,7 @@ module.exports = class Schemas{
             feature_type: String,                   // 查询的特征类型
             count:Number,
             index:Number,
+            resultcount:Number,                     // 用户想要多少个结果（每个block）
             state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
             createtime:Date                         // 创建时间
         });
@@ -85,18 +88,18 @@ module.exports = class Schemas{
 
         this.jobResultSchema = new mongoose.Schema({
             jobid: {type: String,index: true},  // 任务ID
+            source:String,                      // 搜索图片
             imagetype: String,                  // 查询的图片类型
             featuretype: String,                // 查询的特征类型
-            image: String,                      // 图片名称
-            score: String,                      // 相似度
+            image: String,                      // 搜索结果
+            score: Number,                      // 相似度
             extend:String,                      // 扩展内容
             createtime:Date                     // 创建时间
         });
 
         this.jobResultSchema.index({ jobid: 1, imagetype: 1 });
-        this.jobResultSchema.index({ jobid: 1, imagetype: 1,featuretype:1 });
-
-        this.jobResultSchema = conn.model('JobResult', this.jobResultSchema);
+        this.jobResultSchema.index({ jobid: 1, source:1, imagetype: 1,featuretype:1 });
+        this.JobResult = conn.model('JobResult', this.jobResultSchema);
     }
 }
 
