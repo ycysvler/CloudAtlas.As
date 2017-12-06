@@ -11,6 +11,20 @@ let getMongoPool = require('../../mongo/pool');
 
 let redis = new Redis(rediscfg);
 
+function resImageName(Image,id, res, times){
+    if(times > 10){
+        res.send(500,'feature error');
+    }else{
+        Image.findOne({_id: id}, 'name, deep_feature', function (err, item) {
+            if(item.deep_feature === undefined){
+                setTimeout(()=>{resImageName(Image, id, res, times+1)}, 500);
+            }else{
+                res.send(200, {name: item.name});
+            }
+        });
+    }
+}
+
 module.exports = function (router) {
 
     // PaaS -> 图片上传
@@ -56,22 +70,25 @@ module.exports = function (router) {
                             res.send(500, err.errmsg);
                         }
                         else {
-                            res.send(200, {name: item.name});
                             var msg = {name: item.name, type: 'search', entid: entid};
                             redis.publish('Feature:BuildFeature', JSON.stringify(msg));
+
+                            resImageName(Image, item._id, res, 0);
+
+
                         }
                     });
                 }
             });
-
         });
     });
 
     // PaaS -> 新建查询
     router.post('/search', (req, res, next) => {
-        let result = {jobid: "", types: ""};
         let entid = req.ent.entid;
         let Job = getMongoPool(entid).Job;
+
+        console.log(req.body);
 
         if (!req.body.imagetypes || req.body.imagetypes.length == 0) {
             res.send(400, '[imagetypes] parameter is missing');

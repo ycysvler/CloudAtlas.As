@@ -68,19 +68,14 @@ module.exports = function (router) {
     router.post('/images', (req, res, next) => {
         let entid = req.ent.entid;
         let Image = getMongoPool(entid).Image;
-
         var form = new multiparty.Form({uploadDir: './public/upload/'});
-
         form.parse(req, function (err, fields, files) {
             if (fields.type) {
                 var resolvepath;
                 var originalFilename;
-
                 for (var name in files) {
                     let item = files[name][0];
-
                     resolvepath = path.resolve(item.path);
-
                     originalFilename = item.originalFilename;
                 }
 
@@ -110,8 +105,9 @@ module.exports = function (router) {
                 res.send(400, '[type] parameter is missing');
             }
         });
-
     });
+
+
     // PaaS -> 分配类型
     router.put('/images/:name/type', (req, res, next) => {
         // connect 使用 appid 换算出 entid
