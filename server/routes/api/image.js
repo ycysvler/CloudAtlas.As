@@ -23,7 +23,16 @@ module.exports = function (router) {
         let entid = req.params.entid;
         let Image = getMongoPool(entid).Image;
         Image.findOne({name: req.params.image}, function (err, item) {
-            res.send(item.source);
+            if(!err){
+                if(item)
+                res.send(item.source);
+                else{
+                    res.send(404, '['+ req.params.image +'] image does not exist');
+                }
+            }else{
+                res.send(500, err.toString());
+            }
+
         });
     });
     // 旧实现，暂留
@@ -62,7 +71,6 @@ module.exports = function (router) {
             });
         });
     });
-
 
     // PaaS -> 图像上传
     router.post('/images', (req, res, next) => {
@@ -106,7 +114,6 @@ module.exports = function (router) {
             }
         });
     });
-
 
     // PaaS -> 分配类型
     router.put('/images/:name/type', (req, res, next) => {
