@@ -24,7 +24,7 @@ module.exports = class Schemas {
         });
 
         this.agentSchema = new mongoose.Schema({
-            ip: {type: String, index: {unique: true, dropDups: true}},   // 包名
+            ip: {type: String, index: true},   // 包名
             agentid: {type: String}                   // agentid
         });
 

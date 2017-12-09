@@ -15,10 +15,11 @@ module.exports =(req, res, next) => {
         var urlParams = req.url.split('/');
         appid = urlParams[4];
     }else{
-        appid = req.headers["appid"] ? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
+        //appid = req.headers["appid"]? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
+        appid = req.headers["appid"];
     }
 
-    //console.log('content:entloader > appid : ',  appid);
+    console.log('content:entloader > appid : ',  appid);
 
     if(appid){
         // 传了APPID

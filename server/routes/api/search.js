@@ -163,7 +163,13 @@ module.exports = function (router) {
     }
     // PaaS -> 查询任务列表
     router.get('/search', (req, res, next) => {
+        let entid = req.ent.entid;
 
+        let Job = getMongoPool(entid).Job;
+
+        Job.find().sort('-createtime').exec(function (err, items) {
+            res.json(items);
+        });
     });
     // PaaS -> 查询任务详情
     router.get('/search/:id', (req, res, next) => {
