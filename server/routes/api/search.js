@@ -11,14 +11,17 @@ let getMongoPool = require('../../mongo/pool');
 
 let redis = new Redis(rediscfg);
 
-function resImageName(Image,id, res, times){
-    if(times > 10){
-        res.send(500,'feature error');
-    }else{
-        Image.findOne({_id: id}, 'name, deep_feature', function (err, item) {
-            if(item.deep_feature === undefined){
-                setTimeout(()=>{resImageName(Image, id, res, times+1)}, 500);
-            }else{
+function resImageName(Image, id, res, times) {
+    if (times > 10) {
+        res.send(500, 'feature error');
+    } else {
+        Image.findOne({_id: id}, 'name deep_feature', function (err, item) {
+            if (item.deep_feature === undefined) {
+                setTimeout(() => {
+                    resImageName(Image, id, res, times + 1)
+                }, 500);
+            } else {
+                console.log('upload image > ', item);
                 res.send(200, {name: item.name});
             }
         });
@@ -90,6 +93,8 @@ module.exports = function (router) {
 
         console.log(req.body);
 
+        // searchtype = 0 : 快速查询， 1：高级查询， 2：局部查询
+
         if (!req.body.imagetypes || req.body.imagetypes.length == 0) {
             res.send(400, '[imagetypes] parameter is missing');
         } else if (!req.body.images || req.body.images.length == 0) {
@@ -98,12 +103,15 @@ module.exports = function (router) {
             let imagetypes = req.body.imagetypes;
             let images = req.body.images;
             let featuretypes = req.body.featuretypes ? req.body.featuretypes : ["deep"];
+            let jobtype = req.body.jobtype ? parseInt(req.body.jobtype) : 0;    // 默认是快速查询
+            let resultcount = req.body.resultcount ? parseInt(req.body.resultcount) : 10;    // 默认10条结果
             /* 待实现 */
             let item = new Job();
             item.name = req.body.name;
             item.imagetypes = imagetypes;
             item.images = images;
-            item.resultcount = 10;
+            item.jobtype = jobtype;
+            item.resultcount = resultcount;
             item.state = 0;
             item.featuretypes = featuretypes;
             item.createtime = new moment();
@@ -118,10 +126,10 @@ module.exports = function (router) {
                         .where('feature_type').in(featuretypes)
                         .exec(function (err, items) {
                             // 相关的索引文件搞到了
-                            blockCreate(entid,job._id,images,items,item.resultcount / 2,
-                                function(error, blocks){
+                            blockCreate(entid, job._id, images, items, item.resultcount / 2,
+                                function (error, blocks) {
                                     // 通知新查询任务产生
-                                    redis.publish('Search:NewJob', JSON.stringify({jobid: job._id,entid:entid}));
+                                    redis.publish('Search:NewJob', JSON.stringify({jobid: job._id, entid: entid}));
                                     res.json(200, {id: job._id});
                                 });
                         });
@@ -130,7 +138,7 @@ module.exports = function (router) {
         }
     });
 
-    function blockCreate(entid,jobid, images, files,resultcount,callback) {
+    function blockCreate(entid, jobid, images, files, resultcount, callback) {
         var blocks = [];
         for (var i = 0; i < images.length; i++) {
             var image = images[i];
@@ -141,7 +149,7 @@ module.exports = function (router) {
                     image: image,
                     file_name: file.file_name,
                     type: file.type,
-                    resultcount:resultcount,
+                    resultcount: resultcount,
                     feature_type: file.feature_type,
                     count: file.count,
                     index: file.index,
@@ -161,15 +169,29 @@ module.exports = function (router) {
                 callback(err, datas);
             });
     }
+
     // PaaS -> 查询任务列表
     router.get('/search', (req, res, next) => {
         let entid = req.ent.entid;
+        let pageSize = parseInt(req.query.pagesize ? req.query.pagesize : 20);
+        let pageIndex = parseInt(req.query.pageindex ? req.query.pageindex : 0);
+        let name = req.query.name ? req.query.name : '';
 
         let Job = getMongoPool(entid).Job;
 
-        Job.find().sort('-createtime').exec(function (err, items) {
-            res.json(items);
+        let re = new RegExp(name);
+
+        Job.where({'name': re}).count((err, count) => {
+            Job.where({'name': re}).sort('-createtime').skip((pageIndex-1) * pageSize).limit(pageSize).exec((err, items) => {
+                let result = {
+                    pagination:{total:count},
+                    items:items
+                };
+
+                res.json(result);
+            });
         });
+
     });
     // PaaS -> 查询任务详情
     router.get('/search/:id', (req, res, next) => {
