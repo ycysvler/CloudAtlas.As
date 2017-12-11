@@ -60,6 +60,7 @@ module.exports = class Schemas{
             name: {type: String},                   // 任务名称
             imagetypes: [String],                   // 查询的图片类型
             images: [String],                       // 查询的图片类型
+            jobtype: Number,                        // 0 快速查询， 1 高级查询， 2 局部查询
             featuretypes: [String],                 // 查询的特征类型
             progress:Number,
             state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
