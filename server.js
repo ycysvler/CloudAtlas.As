@@ -57,8 +57,13 @@ var corsOptionsDelegate = function(req, callback){
 };
 // 处理跨域
 app.use(cors(corsOptionsDelegate));
+
+
+
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
+
+app.use('/sign', loader(path.join(__dirname, './server/routes/sign'), true));
 
 let entloader = require('./server/connect/entloader');
 let ipvalidate = require('./server/connect/ipvalidate');
