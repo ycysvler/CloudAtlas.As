@@ -70,10 +70,10 @@ module.exports = class Schemas{
 
         this.Job = conn.model('Job', this.jobSchema);
 
-        this.jobBlockSchema = new mongoose.Schema({
+        this.jobFastBlockSchema = new mongoose.Schema({
             jobid:{type: String,index: true},
             image:String,                           // 查询的图片类型
-            file_name: String,                      // 任务名称
+            file_name: String,                      // 索引文件名
             type: String,                           // 查询的图片类型
             feature_type: String,                   // 查询的特征类型
             count:Number,
@@ -83,9 +83,35 @@ module.exports = class Schemas{
             createtime:Date                         // 创建时间
         });
 
-        this.jobBlockSchema.index({ jobid: 1, state: 1 });
-        this.jobBlockSchema.index({ jobid: 1, file_name: 1 });
-        this.JobBlock = conn.model('JobBlock', this.jobBlockSchema);
+        this.jobFastBlockSchema.index({ jobid: 1, state: 1 });
+        this.jobFastBlockSchema.index({ jobid: 1, file_name: 1 });
+        this.JobFastBlock = conn.model('JobFastBlock', this.jobFastBlockSchema);
+
+        this.jobSeniorBlockSchema = new mongoose.Schema({
+            jobid:{type: String,index: true},
+            image:String,                           // 查询的图片类型
+            type: String,                           // 查询的图片类型
+            skip:Number,                            // 查询区间起始点
+            limit:Number,                           // 查询区间长度
+            resultcount:Number,                     // 用户想要多少个结果（每个block）
+            state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
+            createtime:Date                         // 创建时间
+        });
+
+        this.JobSeniorBlock = conn.model('JobSeniorBlock', this.jobSeniorBlockSchema);
+
+        this.jobZoneBlockSchema = new mongoose.Schema({
+            jobid:{type: String,index: true},
+            image:String,                           // 查询的图片类型
+            type: String,                           // 查询的图片类型
+            skip:Number,                            // 查询区间起始点
+            limit:Number,                           // 查询区间长度
+            resultcount:Number,                     // 用户想要多少个结果（每个block）
+            state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
+            createtime:Date                         // 创建时间
+        });
+
+        this.JobZoneBlock = conn.model('JobZoneBlock', this.jobZoneBlockSchema);
 
         this.jobResultSchema = new mongoose.Schema({
             jobid: {type: String,index: true},  // 任务ID

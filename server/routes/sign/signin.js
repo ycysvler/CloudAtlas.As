@@ -11,6 +11,10 @@ module.exports = function (router) {
         let User = getMongoPool().User;
         let Enterprise = getMongoPool().Enterprise;
 
+        console.log('body', req.body);
+
+        console.log('type ', typeof req.body);
+
         User.findOne({mobile: req.body.mobile, password: req.body.password}, (err, user) => {
             if (user) {
                 Enterprise.findOne({entid: user.entid}, (err, ent) => {

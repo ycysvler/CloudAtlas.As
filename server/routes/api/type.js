@@ -44,7 +44,6 @@ module.exports = function (router) {
         let code = req.params.code;
         let message = JSON.stringify({entid:entid,type:code});
         pub.publish('Feature:BuildFeature', message);
-
         res.send(true);
     });
 

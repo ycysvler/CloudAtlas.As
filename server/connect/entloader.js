@@ -37,6 +37,7 @@ module.exports =(req, res, next) => {
             }
         });
     }else{
+        console.log('url > ', req.url);
         res.send(401,'[appid] parameter is missing');
     }
 }

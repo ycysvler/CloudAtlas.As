@@ -12,16 +12,18 @@ let getMongoPool = require('../../mongo/pool');
 let redis = new Redis(rediscfg);
 
 function resImageName(Image, id, res, times) {
+    console.log('times > ', times);
     if (times > 10) {
         res.send(500, 'feature error');
     } else {
-        Image.findOne({_id: id}, 'name deep_feature', function (err, item) {
-            if (item.deep_feature === undefined) {
+        Image.findOne({_id: id}, 'name colour deep_feature', function (err, item) {
+            if(item.colour === -1){
+                res.send(200, {name: item.name});
+            }else if (item.deep_feature === undefined) {
                 setTimeout(() => {
                     resImageName(Image, id, res, times + 1)
-                }, 500);
+                }, 1000);
             } else {
-                console.log('upload image > ', item);
                 res.send(200, {name: item.name});
             }
         });
@@ -29,7 +31,6 @@ function resImageName(Image, id, res, times) {
 }
 
 module.exports = function (router) {
-
     // PaaS -> 图片上传
     router.post('/search/images', (req, res, next) => {
         let entid = req.ent.entid;
@@ -39,13 +40,11 @@ module.exports = function (router) {
         var form = new multiparty.Form({uploadDir: './public/upload/'});
 
         form.parse(req, function (err, fields, files) {
-
             var resolvepath;
             var originalFilename;
 
             for (var name in files) {
                 let item = files[name][0];
-
                 resolvepath = path.resolve(item.path);
                 originalFilename = item.originalFilename;
             }
@@ -77,8 +76,6 @@ module.exports = function (router) {
                             redis.publish('Feature:BuildFeature', JSON.stringify(msg));
 
                             resImageName(Image, item._id, res, 0);
-
-
                         }
                     });
                 }
@@ -91,10 +88,7 @@ module.exports = function (router) {
         let entid = req.ent.entid;
         let Job = getMongoPool(entid).Job;
 
-        console.log(req.body);
-
         // searchtype = 0 : 快速查询， 1：高级查询， 2：局部查询
-
         if (!req.body.imagetypes || req.body.imagetypes.length == 0) {
             res.send(400, '[imagetypes] parameter is missing');
         } else if (!req.body.images || req.body.images.length == 0) {
@@ -115,30 +109,99 @@ module.exports = function (router) {
             item.state = 0;
             item.featuretypes = featuretypes;
             item.createtime = new moment();
+
+
             item.save(function (err, job) {
                 if (err) {
                     res.json(500, err.errmsg);
                 }
                 else {
-                    let ImageIndexFile = getMongoPool(entid).ImageIndexFile;
-                    ImageIndexFile.find()
-                        .where('type').in(imagetypes)
-                        .where('feature_type').in(featuretypes)
-                        .exec(function (err, items) {
-                            // 相关的索引文件搞到了
-                            blockCreate(entid, job._id, images, items, item.resultcount / 2,
-                                function (error, blocks) {
-                                    // 通知新查询任务产生
-                                    redis.publish('Search:NewJob', JSON.stringify({jobid: job._id, entid: entid}));
-                                    res.json(200, {id: job._id});
-                                });
-                        });
+                    // 快速查询情况
+                    if (jobtype === 0) {
+                        Fast(res, entid, job._id, imagetypes, featuretypes, images, resultcount);
+                    }
+                    // 高级查询情况
+                    if (jobtype === 1) {
+                        Senior(res, entid, job._id, imagetypes, images, resultcount, true);
+                    }
+                    // 局部查询情况
+                    if (jobtype === 2) {
+                        // 最后一个字段true是高级，false是局部
+                        Senior(res, entid, job._id, imagetypes, images, resultcount, false);
+                    }
                 }
             });
         }
     });
 
-    function blockCreate(entid, jobid, images, files, resultcount, callback) {
+    function Fast(res, entid, jobid, imagetypes, featuretypes, images, resultcount) {
+        let ImageIndexFile = getMongoPool(entid).ImageIndexFile;
+        ImageIndexFile.find()
+            .where('type').in(imagetypes)
+            .where('feature_type').in(featuretypes)
+            .exec(function (err, items) {
+                // 相关的索引文件搞到了
+                fastBlockCreate(entid, jobid, images, items, resultcount / 2,
+                    function (error, blocks) {
+                        // 通知新查询任务产生
+                        redis.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
+                        res.json(200, {id: jobid});
+                    });
+            });
+    }
+
+    function Senior(res, entid, jobid, imagetypes, images, resultcount, isSenior) {
+        let Image = getMongoPool(entid).Image;
+        let JobBlock = isSenior? getMongoPool(entid).JobSeniorBlock:getMongoPool(entid).JobZoneBlock;
+
+        async.map(imagetypes,
+            (item, callback) => {
+                Image.count({'type': item}, (err, data) => {
+                    let result = [];
+                    for (let key in images) {
+                        let image = images[key];
+                        // 有小数就 +1
+                        let blocks = Math.ceil(data / 100);
+
+                        for (var i = 0; i < blocks; i++) {
+                            result.push({image: image, type: item, blocks: blocks, skip: i * 100, limit: 100});
+                        }
+                    }
+                    callback(null, result);
+                });
+            },
+            (err, datas) => {
+                let items = [];
+                for (var key in datas) {
+                    items = items.concat(datas[key]);
+                }
+
+                async.map(items,
+                    (item, callback) => {
+                        var block = {
+                            jobid: jobid,
+                            image: item.image,
+                            type: item.type,
+                            skip: item.skip,
+                            limit: item.limit,
+                            resultcount: resultcount,
+                            state: 0,
+                            createtime: new moment()
+                        };
+                        JobBlock.create(block, function (err, block) {
+                            callback(null, block);
+                        });
+                    },
+                    (err, datas) => {
+                        // 通知新查询任务产生
+                        redis.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
+                        res.json(200, {id: jobid});
+                    }
+                );
+            });
+    }
+
+    function fastBlockCreate(entid, jobid, images, files, resultcount, callback) {
         var blocks = [];
         for (var i = 0; i < images.length; i++) {
             var image = images[i];
@@ -159,7 +222,7 @@ module.exports = function (router) {
                 blocks.push(block);
             }
         }
-        let JobBlock = getMongoPool(entid).JobBlock;
+        let JobBlock = getMongoPool(entid).JobFastBlock;
         async.map(blocks, function (item, callback) {
                 JobBlock.create(item, function (err, block) {
                     callback(null, block.file_name);
@@ -182,10 +245,10 @@ module.exports = function (router) {
         let re = new RegExp(name);
 
         Job.where({'name': re}).count((err, count) => {
-            Job.where({'name': re}).sort('-createtime').skip((pageIndex-1) * pageSize).limit(pageSize).exec((err, items) => {
+            Job.where({'name': re}).sort('-createtime').skip((pageIndex - 1) * pageSize).limit(pageSize).exec((err, items) => {
                 let result = {
-                    pagination:{total:count},
-                    items:items
+                    pagination: {total: count},
+                    items: items
                 };
 
                 res.json(result);
