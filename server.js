@@ -31,7 +31,12 @@ redis.on('message', function (channel, message) {
     onMessage(channel, message);
 });
 
-redis.subscribe('Log','State:StateChange','HeartBeat:TimeChange', function (err, count) { });
+redis.subscribe(
+    'Log',
+    'State:StateChange',
+    'HeartBeat:TimeChange',
+    'Search:ProgressChange',
+    function (err, count) { });
 
 
 //app.use(compression())
