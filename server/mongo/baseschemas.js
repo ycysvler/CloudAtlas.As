@@ -24,6 +24,7 @@ module.exports = class Schemas{
             createtime:Date,                        // 创建时间
             adminid:String,                         // 管理员ID
             ips:Array,                              // IP 白名单
+            cbaddress:String,                       // 回调地址
             appid:{type:String, index:true}        // 唯一开发ID
         });
 

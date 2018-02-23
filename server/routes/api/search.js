@@ -6,13 +6,12 @@ let path = require('path');
 let fs = require('fs');
 let async = require("async");
 let rediscfg = require('../../config/redis');
-
+var pub = new Redis(rediscfg);
 let getMongoPool = require('../../mongo/pool');
 
 let redis = new Redis(rediscfg);
 
 function resImageName(Image, id, res, times) {
-    console.log('times > ', times);
     if (times > 10) {
         res.send(500, 'feature error');
     } else {
@@ -73,7 +72,21 @@ module.exports = function (router) {
                         }
                         else {
                             var msg = {name: item.name, type: 'search', entid: entid};
+
+
+                            pub.publish('Log', JSON.stringify({ entid:entid,
+                                level: 'DEBUG',
+                                intance: 'CloudAtlas.As',
+                                service:'search',
+                                interface:'/search/images',
+                                title:'上传搜索图片',
+                                content:item.name,
+                                time: new moment()
+                            }));
+
                             redis.publish('Feature:BuildFeature', JSON.stringify(msg));
+
+
 
                             resImageName(Image, item._id, res, 0);
                         }
