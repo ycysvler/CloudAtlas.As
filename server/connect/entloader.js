@@ -18,7 +18,7 @@ module.exports =(req, res, next) => {
         //appid = req.headers["appid"]? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
         appid = req.headers["appid"];
     }
-    appid = req.headers["appid"]? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
+    //appid = req.headers["appid"]? req.headers["appid"] : 'ca52bf40-8a65-11e7-a0b9-1d87294b8940';
     //console.log('content:entloader > appid : ',  appid);
 
     if(appid){
