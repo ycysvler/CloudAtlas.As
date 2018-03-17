@@ -14,10 +14,15 @@ module.exports = function (router) {
     router.post('/indexs', (req, res, next) => {
         let entid = req.ent.entid;
 
+        //console.log('new req >', req);
+        console.log('new body >', JSON.stringify(req.body));
+
+
         let msg = req.body;
         msg.entid = entid;
 
-        console.log('image_types',req.body.types);
+        console.log('imageTypes',req.body);
+        console.log('msg',msg);
 
         // 这里面应该检查一下，客户端是否指定重建那个type的索引，如果没有指定，那就是全量类型，在这里补全；
         if(!req.body.imageTypes){
@@ -25,7 +30,6 @@ module.exports = function (router) {
             // 查找所有code
             ImageType.find({},{_id:0}).select('code').exec(function (err, items) {
                 msg.imageTypes = items;
-                console.log('????', msg);
                 pub.publish('Index:RebuildIndex', JSON.stringify(msg));
                 res.send(200, true);
             });

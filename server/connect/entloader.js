@@ -8,6 +8,8 @@ module.exports =(req, res, next) => {
 
     let appid = "";
 
+    console.log('body', req.body);
+
     // 因为图片地址，没法改http头，所以要在url里面计算appid
     var isGetImage = req.url.indexOf('/images/data/') > -1;
 

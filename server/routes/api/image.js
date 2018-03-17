@@ -183,14 +183,49 @@ module.exports = function (router) {
     });
     // PaaS -> 获取图像数据
     router.get('/images/data/:appid/:name',(req, res, next) =>{
+
         // connect 使用 appid 换算出 entid
         let entid = req.ent.entid;
         let name = req.params.name;
         let Image = getMongoPool(entid).Image;
-        Image.findOne({name: name}, 'source', function (err, item) {
-            res.send(item.source);
-        });
+
+        let type = req.query.type;
+
+        if(type === 'color'){
+
+            Image.findOne({name: name}, 'color_cut', function (err, item) {
+                res.send(item.color_cut);
+            });
+        }
+        else if(type === 'shape'){
+            Image.findOne({name: name}, 'shape_cut', function (err, item) {
+                res.send(item.shape_cut);
+            });
+        }else{
+            Image.findOne({name: name}, 'source', function (err, item) {
+                res.send(item.source);
+            });
+        }
+
+
     });
+
+    router.get('/images/feature/:name',(req, res, next) =>{
+
+        // connect 使用 appid 换算出 entid
+        let entid = req.ent.entid;
+        let name = req.params.name;
+        let Image = getMongoPool(entid).Image;
+
+        let type = req.query.type;
+
+        Image.findOne({name: name},  function (err, item) {
+            res.send(item);
+        });
+
+    });
+
+
     // PaaS -> 查询 -> 按类型查询
     router.get('/images/:type/:pagesize/:pageindex', (req, res, next) => {
         // connect 使用 appid 换算出 entid

@@ -111,7 +111,7 @@ module.exports = function (router) {
             let images = req.body.images;
             let featuretypes = req.body.featuretypes ? req.body.featuretypes : ["deep"];
             let jobtype = req.body.jobtype ? parseInt(req.body.jobtype) : 0;    // 默认是快速查询
-            let resultcount = req.body.resultcount ? parseInt(req.body.resultcount) : 10;    // 默认10条结果
+            let resultcount = req.body.resultcount ? parseInt(req.body.resultcount) : 100;    // 默认10条结果
             /* 待实现 */
             let item = new Job();
             item.name = req.body.name;
@@ -122,6 +122,8 @@ module.exports = function (router) {
             item.state = 0;
             item.featuretypes = featuretypes;
             item.createtime = new moment();
+
+            console.log('new job >', JSON.stringify(req.body));
 
 
             item.save(function (err, job) {
