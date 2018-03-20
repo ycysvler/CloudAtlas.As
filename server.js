@@ -33,6 +33,7 @@ redis.on('message', function (channel, message) {
 
 redis.subscribe(
     'Log',
+    'Feature:BuildFeature',
     'State:StateChange',
     'HeartBeat:TimeChange',
     'Search:ProgressChange',

@@ -16,7 +16,7 @@ module.exports = function (channel, message) {
     } else if (channel === 'State:StateChange') {
         stateChange(message);
     } else if (channel === 'Log') {
-        console.log('%s\t%s\t %s', channel, new moment().format('HH:mm:ss'), JSON.stringify(message));
+        //console.log('%s\t%s\t %s', channel, new moment().format('HH:mm:ss'), JSON.stringify(message));
         logChange(message);
     } else if (channel === 'Search:ProgressChange') {
         progressChange(message);
@@ -41,6 +41,7 @@ function progressChange(message) {
 }
 
 function progressChangeProgress(url, data) {
+    console.log('progressChangeProgress', url, data);
     request({
         url: url,
         method: "POST",
@@ -74,8 +75,6 @@ function jobComplete(url, entid, jobid, data) {
                         createtime: new moment()
                     };
 
-                    console.log('complete', item);
-
                     request({
                         url: url+ "?type=complete",
                         method: "POST",
@@ -102,18 +101,17 @@ function getCallbackUrl(entid, cb) {
     let self = this;
     if (self.ents) {
         if (self.ents[entid]) {
-            cb(self.ents[entid].cbaddress);
+            cb(self.ents[entid]);
         }
     } else {
+        self.ents = {};
+        // 这里只会执行一次
         Enterprise.find(function (err, items) {
-            console.log(entid, items);
             for (let i = 0; i < items.length; i++) {
                 let item = items[i];
-                self.ents = {};
-                self.ents[item.entid] = item;
+                self.ents[item.entid] = item.cbaddress;
             }
-            console.log(entid, self.ents);
-            cb(self.ents[entid].cbaddress);
+            cb(self.ents[entid]);
         });
     }
 }

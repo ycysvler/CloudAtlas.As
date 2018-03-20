@@ -9,8 +9,6 @@ let rediscfg = require('../../config/redis');
 var pub = new Redis(rediscfg);
 let getMongoPool = require('../../mongo/pool');
 
-let redis = new Redis(rediscfg);
-
 function resImageName(Image, id, res, times) {
     if (times > 10) {
         res.send(500, 'feature error');
@@ -84,7 +82,7 @@ module.exports = function (router) {
                                 time: new moment()
                             }));
 
-                            redis.publish('Feature:BuildFeature', JSON.stringify(msg));
+                            pub.publish('Feature:BuildFeature', JSON.stringify(msg));
 
 
 
@@ -159,7 +157,7 @@ module.exports = function (router) {
                 fastBlockCreate(entid, jobid, images, items, resultcount / 2,
                     function (error, blocks) {
                         // 通知新查询任务产生
-                        redis.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
+                        pub.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
                         res.json(200, {id: jobid});
                     });
             });
@@ -209,7 +207,7 @@ module.exports = function (router) {
                     },
                     (err, datas) => {
                         // 通知新查询任务产生
-                        redis.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
+                        pub.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
                         res.json(200, {id: jobid});
                     }
                 );
