@@ -7,8 +7,11 @@ let Enterprise = getMongoPool().Enterprise;
 module.exports = function (channel, message) {
     // 收到消息啦
     message = JSON.parse(message);
+
     //console.log('%s\t%s\t %s',channel, new moment().format('HH:mm:ss'), JSON.stringify(message));
-    if (channel === 'HeartBeat:TimeChange') {
+    if(channel === 'Feature:BuildFeature'){
+        console.log('%s\t%s\t %s',channel, new moment().format('HH:mm:ss'),message);
+    }else if (channel === 'HeartBeat:TimeChange') {
         heartBeatChange(message);
     } else if (channel === 'State:StateChange') {
         stateChange(message);
@@ -103,12 +106,13 @@ function getCallbackUrl(entid, cb) {
         }
     } else {
         Enterprise.find(function (err, items) {
-            console.log(items);
+            console.log(entid, items);
             for (let i = 0; i < items.length; i++) {
                 let item = items[i];
                 self.ents = {};
                 self.ents[item.entid] = item;
             }
+            console.log(entid, self.ents);
             cb(self.ents[entid].cbaddress);
         });
     }
