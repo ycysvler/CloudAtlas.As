@@ -14,9 +14,9 @@ function resImageName(Image, id, res, times) {
         res.send(500, 'feature error');
     } else {
         Image.findOne({_id: id}, 'name colour deep_feature', function (err, item) {
-            if(item.colour === -1){
+            if (item.colour === -1) {
                 res.send(200, {name: item.name});
-            }else if (item.deep_feature === undefined) {
+            } else if (item.deep_feature === undefined) {
                 setTimeout(() => {
                     resImageName(Image, id, res, times + 1)
                 }, 1000);
@@ -72,18 +72,18 @@ module.exports = function (router) {
                             var msg = {name: item.name, type: 'search', entid: entid};
 
 
-                            pub.publish('Log', JSON.stringify({ entid:entid,
+                            pub.publish('Log', JSON.stringify({
+                                entid: entid,
                                 level: 'DEBUG',
                                 intance: 'CloudAtlas.As',
-                                service:'search',
-                                interface:'/search/images',
-                                title:'上传搜索图片',
-                                content:item.name,
+                                service: 'search',
+                                interface: '/search/images',
+                                title: '上传搜索图片',
+                                content: item.name,
                                 time: new moment()
                             }));
 
                             pub.publish('Feature:BuildFeature', JSON.stringify(msg));
-
 
 
                             resImageName(Image, item._id, res, 0);
@@ -120,9 +120,6 @@ module.exports = function (router) {
             item.state = 0;
             item.featuretypes = featuretypes;
             item.createtime = new moment();
-
-            console.log('new job >', JSON.stringify(req.body));
-
 
             item.save(function (err, job) {
                 if (err) {
@@ -165,53 +162,46 @@ module.exports = function (router) {
 
     function Senior(res, entid, jobid, imagetypes, images, resultcount, isSenior) {
         let Image = getMongoPool(entid).Image;
-        let JobBlock = isSenior? getMongoPool(entid).JobSeniorBlock:getMongoPool(entid).JobZoneBlock;
+        let JobBlock = isSenior ? getMongoPool(entid).JobSeniorBlock : getMongoPool(entid).JobZoneBlock;
+        let Instance = getMongoPool('ha').Instance;
+        let parallels = [];
+        Instance.find({package: 'CloudAtlas.Search.Worker'}, function (err, instances) {
 
-        async.map(imagetypes,
-            (item, callback) => {
-                Image.count({'type': item}, (err, data) => {
-                    let result = [];
-                    for (let key in images) {
-                        let image = images[key];
-                        // 有小数就 +1
-                        let blocks = Math.ceil(data / 100);
+            for (let i = 0; i < instances.length; i++) {
+                let instance = instances[i];
 
-                        for (var i = 0; i < blocks; i++) {
-                            result.push({image: image, type: item, blocks: blocks, skip: i * 100, limit: 100});
-                        }
-                    }
-                    callback(null, result);
-                });
-            },
-            (err, datas) => {
-                let items = [];
-                for (var key in datas) {
-                    items = items.concat(datas[key]);
-                }
-
-                async.map(items,
-                    (item, callback) => {
-                        var block = {
-                            jobid: jobid,
-                            image: item.image,
-                            type: item.type,
-                            skip: item.skip,
-                            limit: item.limit,
-                            resultcount: resultcount,
-                            state: 0,
-                            createtime: new moment()
-                        };
-                        JobBlock.create(block, function (err, block) {
-                            callback(null, block);
+                for (let typeIndex in imagetypes) {
+                    let type = imagetypes[typeIndex];
+                    for (let imageIndex in images) {
+                        let image = images[imageIndex];
+                        parallels.push((callback) => {
+                            var block = {
+                                jobid: jobid,
+                                image: image,
+                                type: type,
+                                resultcount: resultcount,
+                                state: 0,
+                                instanceid:instance.instanceid,
+                                index:i,
+                                createtime: new moment()
+                            };
+                            JobBlock.create(block, function (err, block) {
+                                callback(null, block);
+                            });
                         });
-                    },
-                    (err, datas) => {
-                        // 通知新查询任务产生
-                        pub.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
-                        res.json(200, {id: jobid});
                     }
-                );
-            });
+                }
+            }
+
+            async.parallel(parallels,
+                function (err, results) {
+                    // 通知新查询任务产生
+                    pub.publish('Search:NewJob', JSON.stringify({jobid: jobid, entid: entid}));
+                    res.json(200, {id: jobid});
+                });
+        });
+
+
     }
 
     function fastBlockCreate(entid, jobid, images, files, resultcount, callback) {

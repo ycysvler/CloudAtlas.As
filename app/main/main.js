@@ -19,14 +19,12 @@ export class Main extends React.Component {
     }
 
     handleClick = (e) => {
-        console.log('click ', e);
         this.setState({
             current: e.key,
         });
     }
 
     render() {
-        console.log(this.props);
         return (<Layout className="main">
                 <Header className="header"></Header>
                 <Layout>

@@ -29,7 +29,6 @@ function progressChange(message) {
     var data = {progress: message.progress, jobid: message.jobid};
 
     getCallbackUrl(message.entid, (url) => {
-        console.log('progress', data.progress);
         if (data.progress < 1) {
             // 未完成
             progressChangeProgress(url + "?type=progress", data);
@@ -41,7 +40,6 @@ function progressChange(message) {
 }
 
 function progressChangeProgress(url, data) {
-    console.log('progressChangeProgress', url, data);
     request({
         url: url,
         method: "POST",

@@ -91,8 +91,9 @@ module.exports = class Schemas{
             jobid:{type: String,index: true},
             image:String,                           // 查询的图片类型
             type: String,                           // 查询的图片类型
-            skip:Number,                            // 查询区间起始点
-            limit:Number,                           // 查询区间长度
+            instanceid: String,                     // worker 实例Id
+            index: Number,                          // worker index
+            progress:Number,                        // 这个任务的进度
             resultcount:Number,                     // 用户想要多少个结果（每个block）
             state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
             createtime:Date                         // 创建时间
@@ -104,8 +105,8 @@ module.exports = class Schemas{
             jobid:{type: String,index: true},
             image:String,                           // 查询的图片类型
             type: String,                           // 查询的图片类型
-            skip:Number,                            // 查询区间起始点
-            limit:Number,                           // 查询区间长度
+            instanceid: String,                     // worker 实例Id
+            index: Number,                          // worker index
             resultcount:Number,                     // 用户想要多少个结果（每个block）
             state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
             createtime:Date                         // 创建时间
