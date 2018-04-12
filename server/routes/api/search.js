@@ -96,7 +96,6 @@ module.exports = function (router) {
 
     // PaaS -> 新建查询
     router.post('/search', (req, res, next) => {
-        console.log('body', req.body);
         let entid = req.ent.entid;
         let Job = getMongoPool(entid).Job;
 
