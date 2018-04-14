@@ -19,23 +19,26 @@ module.exports = function (channel, message) {
         //console.log('%s\t%s\t %s', channel, new moment().format('HH:mm:ss'), JSON.stringify(message));
         logChange(message);
     } else if (channel === 'Search:ProgressChange') {
+        //console.log('%s\t%s\t %s',channel, new moment().format('HH:mm:ss'),message);
         progressChange(message);
-    } else {
-
+    } else if(channel === 'Search:Complete'){
+        console.log('%s\t%s\t %s',channel, new moment().format('HH:mm:ss'),message);
+        // 查询任务完成
+        searchComplete(message);
     }
 }
 
 function progressChange(message) {
     var data = {progress: message.progress, jobid: message.jobid};
-
-    getCallbackUrl(message.entid, (url) => {
-        if (data.progress < 1) {
-            // 未完成
-            progressChangeProgress(url + "?type=progress", data);
-        } else {
-            // 完成
-            jobComplete(url , message.entid, message.jobid, data);
-        }
+    // 未完成
+    getCallbackUrl(message.entid,(url)=>{
+        progressChangeProgress(url + "?type=progress", data);
+    });
+}
+function searchComplete(message) {
+    var data = {progress: message.progress, jobid: message.jobid};
+    getCallbackUrl(message.entid,(url)=>{
+        jobComplete(url , message.entid, message.jobid, data);
     });
 }
 
@@ -56,6 +59,8 @@ function progressChangeProgress(url, data) {
 
 function jobComplete(url, entid, jobid, data) {
     let JobResult = getMongoPool(entid).JobResult;
+
+    console.log('job complete', jobid);
 
     JobResult.find({
             jobid: jobid
@@ -88,7 +93,7 @@ function jobComplete(url, entid, jobid, data) {
                     });
                 },
                 (err, datas) => {
-                    // 通知新查询任务产生
+                    // 通知进度100%
                     progressChangeProgress(url + "?type=progress", data);
                 }
             );

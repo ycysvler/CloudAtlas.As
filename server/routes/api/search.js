@@ -15,18 +15,17 @@ function resImageName(Image, id, res, times) {
     } else {
         Image.findOne({_id: id}, 'name colour deep_feature', function (err, item) {
             if (item.colour === -1) {
-                res.send(200, {name: item.name});
+                res.send(200, {name: item.name, colour:item.colour});
             } else if (item.deep_feature === undefined) {
                 setTimeout(() => {
                     resImageName(Image, id, res, times + 1)
                 }, 1000);
             } else {
-                res.send(200, {name: item.name});
+                res.send(200, {name: item.name, colour:item.colour});
             }
         });
     }
 }
-
 module.exports = function (router) {
     // PaaS -> 图片上传
     router.post('/search/images', (req, res, next) => {

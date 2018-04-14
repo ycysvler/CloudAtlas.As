@@ -107,6 +107,7 @@ module.exports = class Schemas{
             type: String,                           // 查询的图片类型
             instanceid: String,                     // worker 实例Id
             index: Number,                          // worker index
+            progress:Number,                        // 这个任务的进度
             resultcount:Number,                     // 用户想要多少个结果（每个block）
             state:{type:Number, index:true},        // 0 等待，1 正在执行， 2 执行结束
             createtime:Date                         // 创建时间

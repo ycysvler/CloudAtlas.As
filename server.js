@@ -37,6 +37,7 @@ redis.subscribe(
     'State:StateChange',
     'HeartBeat:TimeChange',
     'Search:ProgressChange',
+    'Search:Complete',
     function (err, count) { });
 
 
