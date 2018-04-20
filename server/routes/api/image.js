@@ -203,7 +203,21 @@ module.exports = function (router) {
             });
         }else{
             Image.findOne({name: name}, 'source', function (err, item) {
-                res.send(item.source);
+                if(err){
+                    pub.publish('Log', JSON.stringify({
+                        entid: entid,
+                        level: 'ERROR',
+                        intance: 'CloudAtlas.As',
+                        service: 'image',
+                        interface: '/images/data/:appid/:name',
+                        title: '查看图片',
+                        content: name,
+                        time: new moment()
+                    }));
+                }else{
+                    res.send(item.source);
+                }
+
             });
         }
 

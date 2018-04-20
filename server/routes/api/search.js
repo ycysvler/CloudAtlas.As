@@ -21,7 +21,8 @@ function resImageName(Image, id, res, times) {
                     resImageName(Image, id, res, times + 1)
                 }, 1000);
             } else {
-                res.send(200, {name: item.name, colour:item.colour});
+                let name = item.name.replace(".TIF",".jpg").replace(".tif", ".jpg");
+                res.send(200, {name: name, colour:item.colour});
             }
         });
     }
@@ -83,8 +84,6 @@ module.exports = function (router) {
                             }));
 
                             pub.publish('Feature:BuildFeature', JSON.stringify(msg));
-
-
                             resImageName(Image, item._id, res, 0);
                         }
                     });
